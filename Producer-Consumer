@@ -1,0 +1,58 @@
+#include <stdlib.h>
+#include <stdio.h>
+#define bmax 5
+int buffer[bmax];
+int in = 0, out = 0;
+int maxp, maxc;
+int empty = bmax, full = 0, mutex = 1;
+void wait(int *s)
+{
+    while (*s <= 0);
+    (*s)--;
+}
+void signal(int *s)
+{
+    (*s)++;
+}
+void producer()
+{
+    int pitems = 0;
+    while (pitems < maxp)
+    {
+        int item;
+        printf("Enter the item id : ");
+        scanf("%d",&item);
+        wait(&empty);
+        wait(&mutex);
+        buffer[in] = item;
+        printf("Producer produced item %d in slot %d\n", item, in);
+        in = (in + 1) % bmax;
+        signal(&mutex);
+        signal(&full);
+        pitems++;
+    }
+}
+void consumer()
+{
+    int citems = 0;
+    while (citems < maxc)
+    {
+        wait(&full);
+        wait(&mutex);
+        int item = buffer[out];
+        printf("Consumer took item %d from slot %d\n", item, out);
+        out = (out + 1) % bmax;
+        signal(&mutex);
+        signal(&empty);
+        citems++;
+    }
+}
+void main()
+{
+    printf("Enter max items the producer can produce: ");
+    scanf("%d", &maxp);
+    printf("Enter max items the consumer can consume: ");
+    scanf("%d", &maxc);
+    producer();
+    consumer();
+}
